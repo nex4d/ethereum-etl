@@ -91,10 +91,8 @@ class ExportTokenTransfersJob(BaseJob):
 
         if self.tokens is not None and len(self.tokens) > 0:
             filter_params['address'] = self.tokens
-        try :
-            event_filter = self.web3.eth.filter(filter_params)
-            events = event_filter.get_all_entries()
-        except:
+
+        events = self._safe_batch_get(filter_params)
 
         for event in events:
             log = self.receipt_log_mapper.web3_dict_to_receipt_log(event)
