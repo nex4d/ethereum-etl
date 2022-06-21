@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import copy
+
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.mappers.token_transfer_mapper import EthTokenTransferMapper
@@ -62,6 +64,22 @@ class ExportTokenTransfersJob(BaseJob):
             total_items=self.end_block - self.start_block + 1
         )
 
+    def _safe_batch_get(self, filter_params):
+        ret = []
+        if filter_params['fromBlock'] > filter_params['toBlock']:
+            return ret
+        try:
+            event_filter = self.web3.eth.filter(filter_params)
+            ret = event_filter.get_all_entries()
+        except:
+            midBlock = (filter_params['fromBlock'] + filter_params['toBlock']) / 2
+            filter_params1 = copy.deepcopy(filter_params)
+            filter_params2 = copy.deepcopy(filter_params)
+            filter_params1['toBlock'] = midBlock
+            filter_params2['fromBlock'] = midBlock + 1
+            ret = self._safe_batch_get(filter_params1) + self._safe_batch_get(filter_params2)
+        return ret
+
     def _export_batch(self, block_number_batch):
         assert len(block_number_batch) > 0
         # https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterlogs
@@ -73,9 +91,11 @@ class ExportTokenTransfersJob(BaseJob):
 
         if self.tokens is not None and len(self.tokens) > 0:
             filter_params['address'] = self.tokens
+        try :
+            event_filter = self.web3.eth.filter(filter_params)
+            events = event_filter.get_all_entries()
+        except:
 
-        event_filter = self.web3.eth.filter(filter_params)
-        events = event_filter.get_all_entries()
         for event in events:
             log = self.receipt_log_mapper.web3_dict_to_receipt_log(event)
             token_transfer = self.token_transfer_extractor.extract_transfer_from_log(log)
