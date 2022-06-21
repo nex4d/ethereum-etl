@@ -74,6 +74,7 @@ class ExportTokenTransfersJob(BaseJob):
             self.web3.eth.uninstallFilter(event_filter.filter_id)
         except:
             if filter_params['fromBlock'] == filter_params['toBlock']:
+                print("to many log at block %s" % filter_params['fromBlock'])
                 return ret
             midBlock = (filter_params['fromBlock'] + filter_params['toBlock']) / 2
             filter_params1 = copy.deepcopy(filter_params)
