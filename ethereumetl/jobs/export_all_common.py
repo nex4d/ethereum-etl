@@ -47,7 +47,8 @@ logger = logging.getLogger('export_all')
 
 
 def is_log_filter_supported(provider_uri):
-    return 'infura' not in provider_uri
+    return True
+    #return 'infura' not in provider_uri
 
 
 def extract_csv_column_unique(input, output, column):
