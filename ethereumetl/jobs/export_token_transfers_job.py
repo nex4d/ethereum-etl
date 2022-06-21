@@ -76,11 +76,13 @@ class ExportTokenTransfersJob(BaseJob):
             if filter_params['fromBlock'] == filter_params['toBlock']:
                 print("to many log at block %s" % filter_params['fromBlock'])
                 return ret
-            midBlock = (filter_params['fromBlock'] + filter_params['toBlock']) / 2
+            midBlock = int((filter_params['fromBlock'] + filter_params['toBlock']) / 2)
             filter_params1 = copy.deepcopy(filter_params)
             filter_params2 = copy.deepcopy(filter_params)
             filter_params1['toBlock'] = midBlock
             filter_params2['fromBlock'] = midBlock + 1
+            print(filter_params1)
+            print(filter_params2)
             ret = self._safe_batch_get(filter_params1) + self._safe_batch_get(filter_params2)
         return ret
 
