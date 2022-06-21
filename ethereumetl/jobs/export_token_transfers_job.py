@@ -71,6 +71,7 @@ class ExportTokenTransfersJob(BaseJob):
         try:
             event_filter = self.web3.eth.filter(filter_params)
             ret = event_filter.get_all_entries()
+            self.web3.eth.uninstallFilter(event_filter.filter_id)
         except:
             midBlock = (filter_params['fromBlock'] + filter_params['toBlock']) / 2
             filter_params1 = copy.deepcopy(filter_params)
@@ -100,7 +101,6 @@ class ExportTokenTransfersJob(BaseJob):
             if token_transfer is not None:
                 self.item_exporter.export_item(self.token_transfer_mapper.token_transfer_to_dict(token_transfer))
 
-        self.web3.eth.uninstallFilter(event_filter.filter_id)
 
     def _end(self):
         self.batch_work_executor.shutdown()
